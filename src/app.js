@@ -1,56 +1,68 @@
 const express = require("express");
-const { adminAuth, userAuth } = require("./middlewares/auth");
+const connectDB = require("./config/Database");
+const { User, Product } = require("./models/user");
 
 const app = express();
-
-app.use("/admin", adminAuth);
-
-app.get("/user", userAuth, (req, res) => {
-  res.send("User got successfully");
+app.use(express.json());
+//Saving user into the database
+app.post("/signup", async (req, res) => {
+  // console.log(req.body);
+  try {
+    const user = new User(req.body);
+    await user.save();
+    res.send("User Saved Successfully");
+  } catch (error) {
+    res.status(400).send("Some error occured", error.message);
+  }
 });
 
-app.get("/admin/getAllData", (req, res) => {
-  res.send("Data is sent successfully");
+//getting all users from the db
+app.get("/getUsers", async (req, res) => {
+  try {
+    const users = await User.find();
+    res.status(200).json({
+      msg: "User fetched successfully",
+      data: users,
+    });
+  } catch (error) {
+    res.status(400).send("Some error occured", error.message);
+  }
 });
 
-app.get("/admin/deleteUser", (req, res) => {
-  res.send("User Deleted");
+// //saving product into the database...
+app.post("/product", async (req, res) => {
+  try {
+    const product = new Product(req.body);
+    await product.save();
+    res.send("Product saved successfully");
+  } catch (error) {
+    res.status(400).send("Some error occured", error.message);
+  }
 });
 
-// app.use(
-//   "/profile",
-//   (req, res, next) => {
-//     next();
-//     // res.send("Profile 1");
-//     // console.log("PRofile 1");
-//   },
-//   (req, res, next) => {
-//     res.send("Profile 2");
-//     next();
-//   },
-//   (req, res, next) => {
-//     // next();
-//     res.send("Profile 3");
-//   },
-//   (req, res, next) => {
-//     // next();
-//     res.send("Profile 4");
-//   },
-// );
-
-app.get("/user/:userId/:name", (req, res) => {
-  console.log(req.params);
-  res.send({ firstName: "Sumit", lastName: "Gautam" });
+//getting all product from the database
+app.get("/getAllProducts", async (req, res) => {
+  try {
+    const products = await Product.find();
+    if (!products.length) {
+      res.status(404).send("No products found");
+    }
+    res.status(200).json({
+      msg: "Product fetched successfully",
+      products: products,
+    });
+  } catch (error) {
+    res.status(400).send("Some error occured");
+  }
 });
 
-// app.post("/user", (req, res) => {
-//   res.send("Data has been saved successfully!");
-// });
-
-// app.delete("/user", (req, res) => {
-//   res.send("Data has been removed from the db");
-// });
-
-app.listen(7777, () => {
-  console.log("server is running on port 7777");
-});
+connectDB()
+  .then(() => {
+    console.log("DB Connected Successfully");
+    app.listen(7777, () => {
+      console.log("server is running on port 7777");
+    });
+  })
+  .catch((err) => {
+    console.log("Couldn't connect with DB", err);
+  });
