@@ -12,7 +12,7 @@ app.post("/signup", async (req, res) => {
     await user.save();
     res.send("User Saved Successfully");
   } catch (error) {
-    res.status(400).send("Some error occured", error.message);
+    res.status(400).send("some error occured : " + error.message);
   }
 });
 
@@ -25,7 +25,72 @@ app.get("/getUsers", async (req, res) => {
       data: users,
     });
   } catch (error) {
-    res.status(400).send("Some error occured", error.message);
+    res.status(400).send("Some error occured" + error.message);
+  }
+});
+
+//get user based on emailId
+app.get("/user", async (req, res) => {
+  try {
+    const email = req.body.email;
+    const user = await User.find({ email: email });
+    if (!user.length) {
+      res.status(404).send("User not found");
+    } else {
+      res.send(user);
+    }
+  } catch (error) {
+    res.status(400).send("Something went wrong");
+  }
+});
+
+//get user by an ID
+app.get("/user/:id", async (req, res) => {
+  try {
+    const id = req.params.id;
+    const user = await User.findById(id);
+    if (!user) {
+      res.status(404).send("User not found");
+    } else {
+      res.send(user);
+    }
+  } catch (error) {
+    res.status(400).send("Something went wrong");
+  }
+});
+
+//delete user through id
+app.delete("/user/:id", async (req, res) => {
+  try {
+    const id = req.params.id;
+    const user = await User.findByIdAndDelete(id);
+    res.send("user deleted successfully");
+  } catch (error) {
+    res.status(400).send("Something went wrong");
+  }
+});
+
+//update the user through id
+
+app.patch("/user/:userId", async (req, res) => {
+  const userId = req.params?.userId;
+  const data = req.body;
+  try {
+    const ALLOWED_UPDATES = ["skills", "firstName", "lastName", "age"];
+    const isAllowedUpdate = Object.keys(data).every((k) =>
+      ALLOWED_UPDATES.includes(k),
+    );
+    if (!isAllowedUpdate) {
+      throw new Error("Update not allowed");
+    }
+    if (data?.skills.length > 5) {
+      throw new Error("Skills cannot be more than 5");
+    }
+    // const id = req.body.id;
+    await User.findByIdAndUpdate(userId, data);
+    res.send("User updated successfully");
+  } catch (error) {
+    res.status(400).send("Update failed : " + error.message);
   }
 });
 
@@ -36,7 +101,7 @@ app.post("/product", async (req, res) => {
     await product.save();
     res.send("Product saved successfully");
   } catch (error) {
-    res.status(400).send("Some error occured", error.message);
+    res.status(400).send("Some error occured" + error.message);
   }
 });
 
