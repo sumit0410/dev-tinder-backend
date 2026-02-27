@@ -4,7 +4,12 @@ const { User, Product } = require("./models/user");
 const { validateSignUpData } = require("./utils/validation");
 const validator = require("validator");
 const bcrypt = require("bcrypt");
+const cookieParser = require("cookie-parser");
+const jwt = require("jsonwebtoken");
+const { userAuth } = require("./middlewares/auth");
+
 const app = express();
+app.use(cookieParser());
 app.use(express.json());
 
 //Saving user into the database
@@ -47,11 +52,27 @@ app.post("/login", async (req, res) => {
     if (!isPasswordValid) {
       throw new Error("Invalid credentials");
     } else {
+      const token = jwt.sign({ _id: user._id }, "SUMIT@@DevTinder");
+      res.cookie("token", token);
       res.send("Login successful!!!");
     }
   } catch (error) {
     res.status(400).send("some error occured : " + error.message);
   }
+});
+
+app.get("/profile", userAuth, async (req, res) => {
+  try {
+    const user = req.user;
+    res.send(user);
+  } catch (error) {
+    res.status(400).send("some error occured : " + error.message);
+  }
+});
+
+app.post("/sendConnectionRequest", userAuth, (req, res) => {
+  const user = req.user;
+  res.send(user.firstName + " has sent a connection request");
 });
 
 //getting all users from the db
