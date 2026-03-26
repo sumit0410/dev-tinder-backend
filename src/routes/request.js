@@ -51,9 +51,41 @@ requestRouter.post(
         `${req.user.firstName} has shown interest in ${toUser.firstName}`,
       );
       res.json({
-        msg: req.user.firstName + status + toUser.firstName,
+        msg: req.user.firstName + " " + status + " " + toUser.firstName,
         requestData,
       });
+    } catch (error) {
+      res.status(400).send("some error occured : " + error.message);
+    }
+  },
+);
+
+requestRouter.post(
+  "/request/review/:status/:requestId",
+  userAuth,
+  async (req, res) => {
+    try {
+      const loggedInUser = req.user;
+      const { status, requestId } = req.params;
+      const allowedStatus = ["accepted", "rejected"];
+      if (!allowedStatus.includes(status)) {
+        return res.status(400).json({ msg: "Status is not allowed" });
+      }
+
+      const connectionRequest = await ConnectionRequest.findOne({
+        _id: requestId,
+        toUserId: loggedInUser._id,
+        status: "interested",
+      });
+
+      if (!connectionRequest) {
+        return res.status(404).json({ msg: "connection request not found" });
+      }
+
+      connectionRequest.status = status;
+      const data = await connectionRequest.save();
+
+      res.json({ msg: "connection request " + status, data: data });
     } catch (error) {
       res.status(400).send("some error occured : " + error.message);
     }
