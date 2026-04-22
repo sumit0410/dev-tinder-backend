@@ -28,6 +28,10 @@ const userSchema = new mongoose.Schema({
   skills: {
     type: [String],
   },
+  photoUrl: {
+    type: String,
+    default: "https://cdn-icons-png.flaticon.com/512/8608/8608769.png",
+  },
 });
 
 userSchema.methods.getJWT = function () {
@@ -45,22 +49,7 @@ userSchema.methods.validatePassword = function (passwordByUserInput) {
   const isPasswordValid = bcrypt.compare(passwordByUserInput, passwordHash);
   return isPasswordValid;
 };
-// const productSchema = new mongoose.Schema({
-//   prodName: {
-//     type: String,
-//   },
-//   prodCategory: {
-//     type: String,
-//   },
-//   price: {
-//     type: String,
-//   },
-//   stockStatus: {
-//     type: String,
-//   },
-// });
 
 const User = mongoose.model("User", userSchema);
-// const Product = mongoose.model("Product", productSchema);
 
 module.exports = { User };

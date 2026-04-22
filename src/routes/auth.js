@@ -12,8 +12,17 @@ authRouter.post("/signup", async (req, res) => {
     //data validation
     validateSignUpData(req);
     //encrypt password
-    const { firstName, lastName, email, password, skills, gender, age, about } =
-      req.body;
+    const {
+      firstName,
+      lastName,
+      email,
+      password,
+      skills,
+      gender,
+      age,
+      about,
+      photoUrl,
+    } = req.body;
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = new User({
       firstName,
@@ -24,9 +33,12 @@ authRouter.post("/signup", async (req, res) => {
       gender,
       age,
       skills,
+      photoUrl,
     });
-    await user.save();
-    res.send("User Saved Successfully");
+    const savedUser = await user.save();
+    const token = await savedUser.getJWT();
+    res.cookie("token", token);
+    res.json({ msg: "User Saved Successfully", data: savedUser });
   } catch (error) {
     res.status(400).send("some error occured : " + error.message);
   }
@@ -44,19 +56,22 @@ authRouter.post("/login", async (req, res) => {
     //finding user with the email entered.
     const user = await User.findOne({ email: email });
     if (!user) {
-      throw new Error("Invalid credentials");
+      throw new Error("Incorrect email or password");
     }
     //checking if the password is same in db
     const isPasswordValid = await user.validatePassword(password);
     if (!isPasswordValid) {
-      throw new Error("Invalid credentials");
+      throw new Error("Incorrect email or password");
     } else {
       const token = await user.getJWT();
       res.cookie("token", token);
-      res.send("Login successful!!!");
+      res.json({
+        msg: "Login successful",
+        user: user,
+      });
     }
   } catch (error) {
-    res.status(400).send("some error occured : " + error.message);
+    res.status(400).send(error.message);
   }
 });
 
