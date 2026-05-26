@@ -1,6 +1,5 @@
 const express = require("express");
 const connectDB = require("./config/Database");
-const { User, Product } = require("./models/user");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
 const http = require("http");

@@ -18,6 +18,7 @@ userRouter.get("/user/requests/received", userAuth, async (req, res) => {
       "gender",
       "photoUrl",
       "about",
+      "headline",
     ]);
 
     res.json({
@@ -46,6 +47,13 @@ userRouter.get("/user/connections", userAuth, async (req, res) => {
         "age",
         "gender",
         "photoUrl",
+        "headline",
+        "location",
+        "skills",
+        "linkedIn",
+        "instagram",
+        "twitter",
+        "github",
       ])
       .populate("toUserId", [
         "firstName",
@@ -53,7 +61,14 @@ userRouter.get("/user/connections", userAuth, async (req, res) => {
         "about",
         "age",
         "gender",
+        "headline",
+        "location",
         "photoUrl",
+        "skills",
+        "linkedIn",
+        "instagram",
+        "twitter",
+        "github",
       ]);
 
     const data = connections.map((row) => {
@@ -98,7 +113,7 @@ userRouter.get("/feed", userAuth, async (req, res) => {
         { _id: { $ne: loggedInUser._id } },
       ],
     })
-      .select("firstName lastName age photoUrl about skills")
+      .select("firstName lastName age photoUrl about skills gender")
       .skip(skip)
       .limit(limit);
 

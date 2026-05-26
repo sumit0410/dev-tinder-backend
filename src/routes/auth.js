@@ -24,6 +24,10 @@ authRouter.post("/signup", async (req, res) => {
       photoUrl,
     } = req.body;
     const hashedPassword = await bcrypt.hash(password, 10);
+    const userAlreadyExist = await User.findOne({ email: email });
+    if (userAlreadyExist) {
+      throw new Error("User aleady exist with this email");
+    }
     const user = new User({
       firstName,
       lastName,
@@ -35,12 +39,13 @@ authRouter.post("/signup", async (req, res) => {
       skills,
       photoUrl,
     });
+
     const savedUser = await user.save();
     const token = await savedUser.getJWT();
     res.cookie("token", token);
     res.json({ msg: "User Saved Successfully", data: savedUser });
   } catch (error) {
-    res.status(400).send("some error occured : " + error.message);
+    res.status(400).send(error.message);
   }
 });
 
@@ -75,6 +80,45 @@ authRouter.post("/login", async (req, res) => {
   }
 });
 
+authRouter.post("/auth/google/login", async (req, res) => {
+  const { name, email, photoUrl } = req.body;
+  let user = await User.findOne({ email });
+  if (!user) {
+    return res.status(400).json({
+      msg: "User doesn't exist, Please Signup",
+    });
+  }
+
+  const token = await user.getJWT();
+  res.cookie("token", token);
+  res.json({
+    msg: "Login successful",
+    user: user,
+  });
+});
+
+authRouter.post("/auth/google/signup", async (req, res) => {
+  const { name, email } = req.body;
+  let userExist = await User.findOne({ email });
+
+  if (userExist) {
+    return res.status(400).json({
+      msg: "User already exists Please Login",
+    });
+  }
+
+  const user = await User.create({
+    firstName: name,
+    email,
+  });
+
+  const token = await user.getJWT();
+  res.cookie("token", token);
+  res.json({
+    msg: "Google Login successful",
+    user: user,
+  });
+});
 authRouter.post("/logout", async (req, res) => {
   res.cookie("token", null, {
     expires: new Date(Date.now()),

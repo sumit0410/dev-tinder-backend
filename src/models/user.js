@@ -16,8 +16,16 @@ const userSchema = new mongoose.Schema({
   password: {
     type: String,
   },
+  location: {
+    type: String,
+  },
+  headline: {
+    type: String,
+    maxlength: [80, "Headline cannot exceed 80 characters"],
+  },
   about: {
     type: String,
+    maxlength: [400, "Headline cannot exceed 80 characters"],
   },
   age: {
     type: Number,
@@ -30,14 +38,30 @@ const userSchema = new mongoose.Schema({
   },
   photoUrl: {
     type: String,
-    default: "https://cdn-icons-png.flaticon.com/512/8608/8608769.png",
+  },
+  github: {
+    type: String,
+  },
+  linkedIn: {
+    type: String,
+  },
+  instagram: {
+    type: String,
+  },
+  twitter: {
+    type: String,
+  },
+  authProvider: {
+    type: String,
+    enum: ["local", "google"],
+    default: "local",
   },
 });
 
 userSchema.methods.getJWT = function () {
   const user = this;
   const token = jwt.sign({ _id: user._id }, "SUMIT@@DevTinder", {
-    expiresIn: "1d",
+    expiresIn: "7d",
   });
   return token;
 };
