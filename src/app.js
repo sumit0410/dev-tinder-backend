@@ -11,6 +11,7 @@ const userRouter = require("./routes/user");
 const dotenv = require("dotenv");
 const initializeSocket = require("./utils/socket");
 const chatRouter = require("./routes/chat");
+const cloudinary = require("../src/utils/cloudinary");
 dotenv.config();
 const app = express();
 app.use(
@@ -27,6 +28,7 @@ app.use("/", profileRouter);
 app.use("/", requestRouter);
 app.use("/", userRouter);
 app.use("/", chatRouter);
+console.log(cloudinary.config());
 
 const server = http.createServer(app);
 initializeSocket(server);

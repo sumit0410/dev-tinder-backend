@@ -43,7 +43,11 @@ authRouter.post("/signup", async (req, res) => {
     const savedUser = await user.save();
     const token = await savedUser.getJWT();
     res.cookie("token", token);
-    res.json({ msg: "User Saved Successfully", data: savedUser });
+    res.json({
+      msg: `welcome ${user.firstName}! Please complete your profile`,
+      data: savedUser,
+      profileCompleted: user.profileCompleted,
+    });
   } catch (error) {
     res.status(400).send(error.message);
   }
@@ -71,8 +75,9 @@ authRouter.post("/login", async (req, res) => {
       const token = await user.getJWT();
       res.cookie("token", token);
       res.json({
-        msg: "Login successful",
+        msg: `welcome back ${user.firstName}`,
         user: user,
+        profileCompleted: user.profileCompleted,
       });
     }
   } catch (error) {
@@ -80,12 +85,13 @@ authRouter.post("/login", async (req, res) => {
   }
 });
 
-authRouter.post("/auth/google/login", async (req, res) => {
-  const { name, email, photoUrl } = req.body;
+authRouter.post("/auth/google", async (req, res) => {
+  const { name, email } = req.body;
   let user = await User.findOne({ email });
   if (!user) {
-    return res.status(400).json({
-      msg: "User doesn't exist, Please Signup",
+    user = await User.create({
+      firstName: name,
+      email,
     });
   }
 
@@ -93,30 +99,8 @@ authRouter.post("/auth/google/login", async (req, res) => {
   res.cookie("token", token);
   res.json({
     msg: "Login successful",
-    user: user,
-  });
-});
-
-authRouter.post("/auth/google/signup", async (req, res) => {
-  const { name, email } = req.body;
-  let userExist = await User.findOne({ email });
-
-  if (userExist) {
-    return res.status(400).json({
-      msg: "User already exists Please Login",
-    });
-  }
-
-  const user = await User.create({
-    firstName: name,
-    email,
-  });
-
-  const token = await user.getJWT();
-  res.cookie("token", token);
-  res.json({
-    msg: "Google Login successful",
-    user: user,
+    user,
+    profileCompleted: user.profileCompleted,
   });
 });
 authRouter.post("/logout", async (req, res) => {

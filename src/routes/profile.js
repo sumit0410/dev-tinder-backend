@@ -4,11 +4,13 @@ const { validateEditProfile } = require("../utils/validation");
 const bcrypt = require("bcrypt");
 const validator = require("validator");
 const profileRouter = express.Router();
+const upload = require("../middlewares/upload");
+const cloudinary = require("../utils/cloudinary");
 
 profileRouter.get("/profile/view", userAuth, async (req, res) => {
   try {
     const user = req.user;
-    res.send(user);
+    return res.send(user);
   } catch (error) {
     res.status(400).send("some error occured : " + error.message);
   }
@@ -21,6 +23,17 @@ profileRouter.patch("/profile/edit", userAuth, async (req, res) => {
     }
     const loggedInUser = req.user;
     console.log(loggedInUser);
+    const isProfileComplete = Boolean(
+      loggedInUser.headline &&
+      loggedInUser.firstName &&
+      loggedInUser.about &&
+      loggedInUser.age &&
+      loggedInUser.gender &&
+      loggedInUser.skills &&
+      loggedInUser.skills.length > 0,
+    );
+
+    loggedInUser.profileCompleted = isProfileComplete;
 
     Object.keys(req.body).forEach((key) => (loggedInUser[key] = req.body[key]));
 
@@ -63,5 +76,29 @@ profileRouter.patch("/profile/password", userAuth, async (req, res) => {
     res.status(400).send("some error occured : " + error.message);
   }
 });
+
+console.log(cloudinary.config());
+//profile picture upload
+profileRouter.post(
+  "/profile/upload-photo",
+  upload.single("photo"),
+  async (req, res) => {
+    try {
+      console.log(req.file);
+
+      const result = await cloudinary.uploader.upload(req.file.path);
+
+      res.json({
+        photoUrl: result.secure_url,
+      });
+    } catch (error) {
+      console.log(error);
+
+      res.status(500).json({
+        message: error.message,
+      });
+    }
+  },
+);
 
 module.exports = profileRouter;

@@ -51,6 +51,10 @@ const userSchema = new mongoose.Schema({
   twitter: {
     type: String,
   },
+  profileCompleted: {
+    type: Boolean,
+    default: false,
+  },
   authProvider: {
     type: String,
     enum: ["local", "google"],
